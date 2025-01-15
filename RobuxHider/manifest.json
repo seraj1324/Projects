@@ -2,12 +2,21 @@
     "manifest_version": 3,
     "name": "RobuxHider",
     "version": "1.0.0",
-    "permissions": ["storage","activeTab","scripting"],
+    "description": "Click Me To Switch On/Off",
+    "permissions": ["storage"],
     "host_permissions": [
         "https://www.roblox.com/*"
+    ],
+    "content_scripts": [
+        {
+            "matches": ["https://www.roblox.com/*"],
+            "run_at": "document_start",
+            "all_frames": true,
+            "js": ["Content.js"]
+        }
     ],
     "background": {
         "service_worker": "background.js"
     },
-    "action": {"default_title": "Click Me To Switch On/Off"}
+    "action": {"default_title": "Click Me To Switch On/Off", "default_icon": "ICON.png"}
 }

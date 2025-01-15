@@ -1,33 +1,42 @@
-function waitForElm(selector) {
-    return new Promise(resolve => {
-        if (document.getElementById(selector)) {
-            return resolve(document.getElementById(selector));
-        }
+async function retrieveCurrentStat() {
+    return (await chrome.storage.sync.get("currentState")).currentState;
+};
 
-        const observer = new MutationObserver(mutations => {
-            if (document.getElementById(selector)) {
-                observer.disconnect();
-                resolve(document.getElementById(selector));
+retrieveCurrentStat().then(function(result) {
+    if (result == true) {
+        const DEL_SELECTOR = 'SPAN';
+        const DEL_MAIN = 'nav-robux-amount';
+
+        const mo = new MutationObserver(onMutation);
+        
+        onMutation([{addedNodes: [document.documentElement]}]);
+        observe();
+        
+        function onMutation(mutations) {
+            let stopped;
+            for (const {addedNodes} of mutations) {
+                for (const n of addedNodes) {
+                    if (n.tagName) {
+                        if (n.matches(DEL_SELECTOR) && n.id && n.id == DEL_MAIN) {
+                            stopped = true;
+                            mo.disconnect();
+                            n.remove();
+                        } else if (n.firstElementChild && n.querySelector(DEL_SELECTOR)) {
+                            stopped = true;
+                            mo.disconnect();
+                            for (const el of n.querySelectorAll(DEL_SELECTOR)) if (el.id && el.id == DEL_MAIN) {el.remove()};
+                        }
+                    }
+                }
             }
-        });
-
-        observer.observe(document.body, {
-            childList: true,
-            subtree: true
-        });
-    });
-};
-
-if (document.getElementById('nav-robux-amount') == null) {
-    document.addEventListener('DOMContentLoaded', onInit, false);
-
-    function onInit() {
-        waitForElm('nav-robux-amount').then((elm) => {
-            var element1 = document.getElementById('nav-robux-amount');
-            element1.remove();
-        });
+            if (stopped) observe();
+        }
+        
+        function observe() {
+            mo.observe(document, {
+                subtree: true,
+                childList: true,
+            });
+        }
     };
-} else {
-    var element1 = document.getElementById('nav-robux-amount');
-    element1.remove();
-};
+});
